@@ -1,3 +1,22 @@
+/*
+The GPLv3 License (GPLv3)
+
+Copyright (c) 2023 Yves Wong
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <iostream>
 #include <cstdio>
 #include <algorithm>
@@ -140,6 +159,7 @@ int main()
     {
         for (int left = 0; left <= string_length - len; left++)
         {
+            // 在串里取一段，然后遍历这个段
             SubTree subTreeBuf[2][MAX_STRING_LENGTH];// 其本身是个二维度量
             //memset(subTreeBuf, 0, sizeof subTreeBuf);
             int curr = 0;
@@ -147,11 +167,13 @@ int main()
             int oldTreeNum = 0;
             for (int right = left + 1; right < left + len; right++)
             {
+                // 从调试输出我们知道这里我们把这个段分成两部分（B、C），那么我们应该如何将他们合并起来，然后更新上去呢？
                 // 首先我们要对区间本身有概念
                 // printf("[%d, %d] = [%d, %d] + [%d, %d]\n", left, left + len, left, right, right, left + len);
                 // printf("len = %d, left = %d, right = %d\n", len, left, right);
                 // here we define len, left and right.
                 // 这里遍历的是什么？注意我们要落到字符串之上
+                // 因为B和C本身是集合，所以我们显然要看正两个集合之中的情况
                 for (int i1 = 0; i1 < subTreeNumTable[left][right - 1]; i1++) // find all related marker at this position range, for initial state(means i != j) this value seems to be 0.
                 {
                     // printf("--> %d\n", i1);
@@ -159,6 +181,7 @@ int main()
                     for (int i2 = 0; i2 < subTreeNumTable[right][left + len - 1]; i2++) // this algo NOT means split the seg into 2 part.
                     {
                         SubTree subTreeChild2 = subTreeTable[right][left + len - 1][i2];
+                        // 好的，现在我们已经拿出分别属于两个集合的东西了，下面进行具体的合并
                         // get the transformation rules.
                         printf("get vnIndex: (%d, %d)\n", subTreeChild1.root, subTreeChild2.root);
                         int begin = vnIndex[subTreeChild1.root][subTreeChild2.root].begin;
@@ -169,7 +192,7 @@ int main()
                         }
                         swap(last, curr);
                         int newTreeNum = 0;
-                        int k = 0;
+                        int k = 0; // 这里的K是另一个关键，我们应该如何理解呢？
                         for (int j = begin; j < end; j++) // iterate them.
                         {
                             SubTree subTreeParent; // yes and how can we merge two child into it's parent?
@@ -178,11 +201,13 @@ int main()
                             // 下面是比较头疼的地方：他在两行数据之间来回折腾
                             while (k < oldTreeNum && subTreeParent.root > subTreeBuf[last][k].root)
                                 subTreeBuf[curr][newTreeNum++] = subTreeBuf[last][k++];
+
                             if (k < oldTreeNum && subTreeParent.root == subTreeBuf[last][k].root)
                                 subTreeParent.num += subTreeBuf[last][k++].num; // !
+                          
                             subTreeBuf[curr][newTreeNum++] = subTreeParent;
                         }
-                        while (k < oldTreeNum)
+                        while (k < oldTreeNum) // 从这里来看是把一些东西带回来了
                         {
                             subTreeBuf[curr][newTreeNum++] = subTreeBuf[last][k++];
                         }
@@ -197,8 +222,10 @@ int main()
                 // 这里相当于将先前创建的状态都更新，而不是在后面拼接! 我们需要格外关注curr会在01之间变动！
                 // 不必担心，因为其本身是个滚动数组，dp那味出来了
                 // 说实话，我们最关心的是[0][len - 1][0]这个状态，因为他的.num就是答案！
+                // 确实这里的curr和迭代的正负有关系阿
                 memcpy(subTreeTable[left][left + len - 1], subTreeBuf[curr], subTreeNumTable[left][left + len - 1] * sizeof(SubTree));
                 cout << "--------new tree node added-----------" << endl;
+                cout << "curr = " << curr << endl;
                 cout << "len = " << len << " left = " << left << endl;
                 cout << "left = " << left << " end = " << left + len - 1 << endl;
                 for(int pp = 0; pp < oldTreeNum; pp ++){
