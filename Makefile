@@ -1,7 +1,7 @@
 # Compiler and flags
-CXX = clang++
+CXX = g++
 INCLUDE =   # add needed libs.
-CXXFLAGS = -Wall -Wextra $(INCLUDE)
+CXXFLAGS = -Wall -Wextra -O3 -fopenmp -DOMP -Wunused-result $(INCLUDE)
 
 # Directories
 SRCDIR = src
@@ -9,7 +9,7 @@ BUILDDIR = build
 TESTDIR = test
 
 # Targets
-TARGET = $(BUILDDIR)/serial_CYK
+TARGET = $(BUILDDIR)/omp
 
 # ANSI color codes
 RED = \033[0;31m
@@ -23,7 +23,7 @@ all: serial
 
 serial: $(TARGET)
 
-$(TARGET): $(SRCDIR)/serial_CYK.cpp
+$(TARGET): $(SRCDIR)/omp.cpp
 	@mkdir -p $(BUILDDIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
 

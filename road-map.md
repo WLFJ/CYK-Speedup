@@ -1,4 +1,5 @@
 # Road Map
 
-- [ ] PROJECT: init Makefile support: single version algo build, test, benchmark.
-- [ ] REPORT: analysis what this algo actually doing.
+- [x] PROJECT: initial Makefile support: single version algorithm build, test.
+- [x] REPORT: analysis what this algorithm actually doing.
+- [ ] GRAPH: Generate a tree to describe the compute dependency.

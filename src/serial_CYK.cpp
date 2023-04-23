@@ -160,6 +160,7 @@ int main()
         for (int left = 0; left <= string_length - len; left++)
         {
             // 在串里取一段，然后遍历这个段
+            // Then how to speedup?
             SubTree subTreeBuf[2][MAX_STRING_LENGTH];// 其本身是个二维度量
             //memset(subTreeBuf, 0, sizeof subTreeBuf);
             int curr = 0;
@@ -182,8 +183,14 @@ int main()
                     {
                         SubTree subTreeChild2 = subTreeTable[right][left + len - 1][i2];
                         // 好的，现在我们已经拿出分别属于两个集合的东西了，下面进行具体的合并
+                        // 这里面临的问题是整个树是存在依赖的，也就是只有计算了下面的叶子节点才能计算树根的值。
                         // get the transformation rules.
-                        printf("get vnIndex: (%d, %d)\n", subTreeChild1.root, subTreeChild2.root);
+                        // printf("get vnIndex: (%d, %d)\n", subTreeChild1.root, subTreeChild2.root);
+                        // 这里我们需要明确一下各个定义之间的关系！
+                        // 1. subTree 和 vn之间的关系？
+                        // ans -> vn是若干表达式
+                        // 2. subTree最开始的初始状态是如何建立的？
+                        // ans -> 刚开始是字符串 + 若干特化解释，后面应该是会不断合并出结果的
                         int begin = vnIndex[subTreeChild1.root][subTreeChild2.root].begin;
                         int end = begin + vnIndex[subTreeChild1.root][subTreeChild2.root].num;
                         if (begin == end)
@@ -193,20 +200,24 @@ int main()
                         swap(last, curr);
                         int newTreeNum = 0;
                         int k = 0; // 这里的K是另一个关键，我们应该如何理解呢？
+                        // 下面这个阶段是生成所有可能的根节点，因为其本身是个计数问题，所以我们要关注这个根节点是如何算出正确的数字的？
                         for (int j = begin; j < end; j++) // iterate them.
                         {
                             SubTree subTreeParent; // yes and how can we merge two child into it's parent?
                             subTreeParent.root = production2[j].parent;
-                            subTreeParent.num = subTreeChild1.num * subTreeChild2.num; // !
+                            subTreeParent.num = subTreeChild1.num * subTreeChild2.num; // 这里应当是好理解的，因为每个子节点都有可能有很多节点，因此乘法原理此处适用
+                          
                             // 下面是比较头疼的地方：他在两行数据之间来回折腾
-                            while (k < oldTreeNum && subTreeParent.root > subTreeBuf[last][k].root)
+                            // 同时这里我们肯定注意到subTreeBuf本身是有序的
+                            while (k < oldTreeNum && subTreeParent.root > subTreeBuf[last][k].root) // 这里是看上次生成的节点，但是为什么存在一个有关root的大小关系呢？
                                 subTreeBuf[curr][newTreeNum++] = subTreeBuf[last][k++];
 
                             if (k < oldTreeNum && subTreeParent.root == subTreeBuf[last][k].root)
-                                subTreeParent.num += subTreeBuf[last][k++].num; // !
+                                subTreeParent.num += subTreeBuf[last][k++].num; // 根相同的部分我们将数字进行合并，自然不需要拷贝了！
                           
-                            subTreeBuf[curr][newTreeNum++] = subTreeParent;
+                            subTreeBuf[curr][newTreeNum++] = subTreeParent; // 将根放在合适的位置
                         }
+                        // 当A、B的合并节点生成完毕后，会把剩下的部分拷贝过来，这显然也是单纯为了维护列表的有序性
                         while (k < oldTreeNum) // 从这里来看是把一些东西带回来了
                         {
                             subTreeBuf[curr][newTreeNum++] = subTreeBuf[last][k++];
@@ -215,6 +226,8 @@ int main()
                     }
                 }
             }
+            // 到达这里之后，相当于这个段落里面所有的B、C都合并过了，我们看看其之后会干什么？
+            // 是的，就是单纯的覆盖了！
             // 其实我们可以关注一下每次都有哪些元素放到subTreeTable里面了，因为这些东西最终都会放到大表里面！
             subTreeNumTable[left][left + len - 1] = oldTreeNum;
             if (subTreeNumTable[left][left + len - 1] > 0) // 如果产生了新状态就拼接上去
@@ -224,15 +237,15 @@ int main()
                 // 说实话，我们最关心的是[0][len - 1][0]这个状态，因为他的.num就是答案！
                 // 确实这里的curr和迭代的正负有关系阿
                 memcpy(subTreeTable[left][left + len - 1], subTreeBuf[curr], subTreeNumTable[left][left + len - 1] * sizeof(SubTree));
-                cout << "--------new tree node added-----------" << endl;
-                cout << "curr = " << curr << endl;
-                cout << "len = " << len << " left = " << left << endl;
-                cout << "left = " << left << " end = " << left + len - 1 << endl;
-                for(int pp = 0; pp < oldTreeNum; pp ++){
-                  SubTree tt = subTreeBuf[curr][pp];
-                  cout << "root = " << tt.root << " num = " << tt.num << endl;
-                }
-                cout << "-------------------" << endl;
+                // cout << "--------new tree node added-----------" << endl;
+                // cout << "curr = " << curr << endl;
+                // cout << "len = " << len << " left = " << left << endl;
+                // cout << "left = " << left << " end = " << left + len - 1 << endl;
+                // for(int pp = 0; pp < oldTreeNum; pp ++){
+                //   SubTree tt = subTreeBuf[curr][pp];
+                //   cout << "root = " << tt.root << " num = " << tt.num << endl;
+                // }
+                // cout << "-------------------" << endl;
             }
         }
     }
@@ -244,6 +257,10 @@ int main()
         if (subTreeTable[0][string_length - 1][0].root == 0)
         {
             treeNum = subTreeTable[0][string_length - 1][0].num;
+        }
+        for(int i = 0;i < subTreeNumTable[0][string_length - 1]; i ++){
+            cout <<  subTreeTable[0][string_length - 1][i].root << " " << subTreeTable[0][string_length - 1][i].num << endl;
+
         }
     }
     printf("%u\n", treeNum);
