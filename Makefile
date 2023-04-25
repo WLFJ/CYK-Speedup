@@ -1,15 +1,21 @@
 # Compiler and flags
 CXX = g++
 INCLUDE =   # add needed libs.
-CXXFLAGS = -Wall -Wextra -O3 -fopenmp -DOMP -Wunused-result $(INCLUDE)
+CXXFLAGS = -Wall -Wextra -O3 -D$(TEST) -fopenmp -Wunused-result $(INCLUDE)
 
 # Directories
 SRCDIR = src
 BUILDDIR = build
 TESTDIR = test
 
+# google benchmark
+BENCHMARK_CFLAGS := $(shell pkg-config --cflags benchmark)
+BENCHMARK_LDFLAGS := $(shell pkg-config --libs benchmark)
+
 # Targets
-TARGET = $(BUILDDIR)/omp
+TARGET = $(BUILDDIR)/cyk
+BENCHMARK_TARGET = $(BUILDDIR)/benchmark
+CYKOMP = $(BUILDDIR)/cykomp.o
 
 # ANSI color codes
 RED = \033[0;31m
@@ -23,9 +29,15 @@ all: serial
 
 serial: $(TARGET)
 
-$(TARGET): $(SRCDIR)/omp.cpp
+benchmark: $(BENCHMARK_TARGET)
+
+$(CYKOMP): $(SRCDIR)/cykomp.cpp  $(SRCDIR)/cykomp.h
 	@mkdir -p $(BUILDDIR)
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+$(TARGET): $(SRCDIR)/cyk.cpp $(CYKOMP)
+	@mkdir -p $(BUILDDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(CYKOMP)
 
 clean:
 	@rm -rf $(BUILDDIR)
@@ -49,6 +61,10 @@ test: serial
 run: serial
 	@echo "Running use test/input1.txt"
 	@./$(TARGET) < "test/input1.txt"
+
+$(BENCHMARK_TARGET): $(SRCDIR)/benchmark.cpp $(CYKOMP)
+	@mkdir -p $(BUILDDIR)
+	$(CXX) $(CXXFLAGS) $(BENCHMARK_CFLAGS) -o $@ $< $(CYKOMP) $(BENCHMARK_LDFLAGS)
 
 db:
 	bear -- make
