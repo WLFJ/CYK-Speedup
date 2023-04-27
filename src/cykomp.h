@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace cyk{
+namespace cyk {
 using namespace std;
 #define MAXN 1000
 
@@ -18,6 +18,6 @@ void init();
 
 void calc();
 void print_res();
-};
+}; // namespace cyk
 
 #endif

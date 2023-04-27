@@ -1,5 +1,5 @@
-#include "cykomp.h"
-namespace cyk{
+#include cykomp.h"
+namespace cyk {
 
 // pair<root,num>
 unordered_map<unsigned, unsigned> dp[MAXN][MAXN];
@@ -40,8 +40,8 @@ void calc() {
 }
 
 void merge(unordered_map<unsigned, unsigned> &mem,
-                  const unordered_map<unsigned, unsigned> &va,
-                  const unordered_map<unsigned, unsigned> &vb) {
+           const unordered_map<unsigned, unsigned> &va,
+           const unordered_map<unsigned, unsigned> &vb) {
   for (auto ita = va.begin(); ita != va.end(); ++ita) {
     for (auto itb = vb.begin(); itb != vb.end(); ++itb) {
       auto &vroot = role[ita->first][itb->first];
@@ -55,9 +55,9 @@ void merge(unordered_map<unsigned, unsigned> &mem,
 }
 
 void init() {
-  for(int i = 0; i < len; i ++)
-	  for(int j = 0; j < len; j ++)
-		  dp[i][j].clear();
+  for (int i = 0; i < len; i++)
+    for (int j = 0; j < len; j++)
+      dp[i][j].clear();
   for (int i = 0; i < len; i++) {
     // init dp[0][i]
     char t = str[i];
@@ -68,12 +68,12 @@ void init() {
   }
 }
 
-void load_data(){
+void load_data() {
   std::ignore = scanf("%d\n", &num_v);
   std::ignore = scanf("%d\n", &role_n);
-  for(int i = 0; i < MAXN; i ++)
-	  for(int j = 0; j < MAXN; j ++)
-		  role[i][j].clear();
+  for (int i = 0; i < MAXN; i++)
+    for (int j = 0; j < MAXN; j++)
+      role[i][j].clear();
   for (int i = 0; i < role_n; i++) {
     std::ignore = scanf("<%d>::=<%d><%d>\n", &a, &b, &c);
     role[b][c].push_back(a);
@@ -104,4 +104,3 @@ end:
   return;
 }
 } // namespace cyk
-
