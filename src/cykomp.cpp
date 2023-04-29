@@ -1,4 +1,4 @@
-#include cykomp.h"
+#include "cykomp.h"
 namespace cyk {
 
 // pair<root,num>
@@ -46,7 +46,9 @@ void merge(unordered_map<unsigned, unsigned> &mem,
     for (auto itb = vb.begin(); itb != vb.end(); ++itb) {
       auto &vroot = role[ita->first][itb->first];
       for (auto root : vroot) {
-        // cout << "MERGE" << " " << ita->first << " " << itb->second << endl;
+#ifdef DEBUG
+        cout << "MERGE" << " " << ita->first << " " << itb->second << " into " << root << endl;
+#endif
         mem[root] += ita->second * itb->second;
       }
     }

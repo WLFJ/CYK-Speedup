@@ -1,7 +1,7 @@
 # Compiler and flags
 CXX = g++
 INCLUDE =   # add needed libs.
-CXXFLAGS = -Wall -Wextra -O3 -D$(TEST) -fopenmp -Wunused-result $(INCLUDE)
+CXXFLAGS = -Wall -Wextra -O3 -D$(TEST) -D$(DEBUG) -fopenmp -Wunused-result $(INCLUDE)
 
 # Directories
 SRCDIR = src
