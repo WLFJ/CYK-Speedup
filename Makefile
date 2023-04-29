@@ -3,6 +3,8 @@ CXX = g++
 INCLUDE =   # add needed libs.
 CXXFLAGS = -Wall -Wextra -O3 -D$(TEST) -D$(DEBUG) -fopenmp -Wunused-result $(INCLUDE)
 
+REPORT_NAME = "算法设计文档.pdf"
+
 # Directories
 SRCDIR = src
 BUILDDIR = build
@@ -23,9 +25,9 @@ GREEN = \033[0;32m
 NC = \033[0m # No color
 
 # Rules
-.PHONY: all serial clean test
+.PHONY: all serial clean test report
 
-all: serial
+all: serial report
 
 serial: $(TARGET)
 
@@ -68,3 +70,11 @@ $(BENCHMARK_TARGET): $(SRCDIR)/benchmark.cpp $(CYKOMP)
 
 db:
 	bear -- make
+
+report:
+	$(MAKE) -C report
+	mv report/report.pdf $(BUILDDIR)/$(REPORT_NAME)
+
+gitzip: report
+	@git archive --format=zip -o $(BUILDDIR)/source-code.zip HEAD
+	# zip -r $(BUILDDIR)/source-code.zip $(BUILDDIR)/$(REPORT_NAME)

@@ -1,12 +1,10 @@
-# CYK算法加速报告
+---
+title: CYK算法加速报告
+author: "王彦伟\nSY2206220\n北航软件所"
+date: Apr 29
+---
 
-SY2206220 王彦伟
-yveswong@buaa.edu.cn
-北京航空航天大学软件所
-
-## 算法分析与加速实现
-
-### 算法原理
+# 算法原理
 
 以样例来说明算法的逻辑：
 
@@ -35,7 +33,7 @@ baaba
 题目的问题是：有多少种合法的方案呢？
 对于本样例而言的答案是2，具体能够构建的合法语法树请见任务书。
 
-### 算法深入理解与算法原理分析
+## 算法深入理解与算法原理分析
 
 原始算法的核心部分（同时也是性能瓶颈区域）如下，同时附带一些帮助理解代码的注释。
 
@@ -156,7 +154,7 @@ for (int len = 2; len <= string_length;
 
 根据上面的例子，我们就不难理清算法的数据依赖了。
 
-### 算法原理
+## 优化实现
 
 首先我们先定义`merge`的概念：
 ```cpp
@@ -213,9 +211,9 @@ for (int i = 1; i < len; ++i) {
 实例当中所有带`[]`标记的便是数据依赖关系。因此，我们可以直接对`j`轴进行并行，
 并且线程之间不存在消息通信。
 
-## 性能测试
+# 性能测试
 
-首先计算一下测试平台：
+首先介绍一下测试平台：
 
 ```
 RK3588 Cortex-A55 x 4 @ 1.8GHz   Cortex-A76 x 4 @ 2.3GHz
@@ -227,20 +225,20 @@ CPU Caches:
   L3 Unified 3072K (x1)
 ```
 
-算法使用Google Benchmark对热点过程进行跑分，下面是依据题目所给定的`input2.txt`数据的不同线程计时情况：
+算法使用Google Benchmark对热点过程进行计时，下面是依据题目所给定的`input2.txt`数据的不同线程计时情况：
 
 注意：但是Google Benchmark识别到的是8x1.8G，因此有4个A76大核没有跑满，不过这正好方便我们进行后面的测试了。
 
 | Threads       | Time(ns)           | 测试命令                                     |
 |-------------- | ------------------ | ---------------------------------------------|
-| 1             | 221973178603ns     | taskset -c 0 ./build/benchmark               |
-| 2             | 148448341739ns     | taskset -c 0,1 ./build/benchmark             |
-| 3             | 92196600647ns      | taskset -c 0,1,2 ./build/benchmark           |
-| 4             | 62844402001ns      | taskset -c 0,1,2,3 ./build/benchmark         |
-| 5             | 34026216728ns      | taskset -c 0,1,2,3,4 ./build/benchmark       |
-| 6             | 23586149586ns      | taskset -c 0,1,2,3,4,5 ./build/benchmark     |
-| 7             | 18568101648ns      | taskset -c 0,1,2,3,4,5,6 ./build/benchmark   |
-| 8             | 14663536649ns      | taskset -c 0,1,2,3,4,5,6,7 ./build/benchmark |
+| 1             | 221973178603     | taskset -c 0 ./build/benchmark               |
+| 2             | 148448341739     | taskset -c 0,1 ./build/benchmark             |
+| 3             | 92196600647      | taskset -c 0,1,2 ./build/benchmark           |
+| 4             | 62844402001      | taskset -c 0,1,2,3 ./build/benchmark         |
+| 5             | 34026216728      | taskset -c 0,1,2,3,4 ./build/benchmark       |
+| 6             | 23586149586      | taskset -c 0,1,2,3,4,5 ./build/benchmark     |
+| 7             | 18568101648      | taskset -c 0,1,2,3,4,5,6 ./build/benchmark   |
+| 8             | 14663536649      | taskset -c 0,1,2,3,4,5,6,7 ./build/benchmark |
 
 
 根据benchmark的数据可画出如下示意图：
@@ -249,3 +247,20 @@ CPU Caches:
 
 首先可明显看到整条曲线被分成两部分，猜测可能是因为大小核的架构差异。
 因为线程之间没有消息同步的overhead，所以是强可扩放的。
+
+# 附录
+
+在编译之前需要安装Google Benchmark才能进行性能测试库的编译：
+```bash
+sudo apt install libbenchmark-dev
+```
+
+主程序编译命令：
+```bash
+make TEST=OMP DEBUG=OFF
+```
+
+benchmark程序编译命令（程序会自动读入`input2.txt`作为性能测试数据来源）。
+```bash
+make TEST=OMP DEBUG=OFF benchmark
+```
